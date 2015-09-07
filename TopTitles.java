@@ -138,24 +138,21 @@ public class TopTitles extends Configured implements Tool {
     }
 
     public static class TitleCountReduce extends Reducer<Text, IntWritable, Text, IntWritable> {
-        private Log log = LogFactory.getLog(TitleCountReduce.class);
-
         @Override
         public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
 
-            int total = 0;
+            int cnt = 0;
             for (IntWritable val : values) {
-                total += val.get();
+                cnt += val.get();
             }
-            log.info(key.toString() + ", " + total);
 
-            context.write(key, new IntWritable(total));
+            context.write(key, new IntWritable(cnt));
         }
     }
 
     public static class TopTitlesMap extends Mapper<Text, Text, NullWritable, TextArrayWritable> {
         Integer N;
-        private Log log = LogFactory.getLog(TopTitlesMap.class);
+        private TreeSet<Pair<Integer, String>> pairsSet = new TreeSet<Pair<Integer, String>>();
 
         @Override
         protected void setup(Context context) throws IOException,InterruptedException {
@@ -165,19 +162,28 @@ public class TopTitles extends Configured implements Tool {
 
         @Override
         public void map(Text key, Text value, Context context) throws IOException, InterruptedException {
-            TextArrayWritable list;
-            log.info(key.toString() + ", " + value.toString());
+            String word = key.toString();
+            int cnt = Integer.parseInt(value.toString();
+            Pair<Integer, String> pair = new Pair<>(cnt, word);
+            pairsSet.add(pair);
         }
 
         @Override
         protected void cleanup(Context context) throws IOException, InterruptedException {
-            // TODO
+            while (pairsSet.size() > N) {
+                pairsSet.remove(pairsSet.first());
+            }
+
+            for (Pair<Integer, String> item : pairsSet) {
+                String[] itemArray = {item.first.toString(), item.second};
+                context.write(NullWritable.get(), new TextArrayWritable(itemArray));
+            }
         }
     }
 
     public static class TopTitlesReduce extends Reducer<NullWritable, TextArrayWritable, Text, IntWritable> {
         Integer N;
-        // TODO
+        private TreeSet<Pair<Integer, String>> pairsSet = new TreeSet<Pair<Integer, String>>();
 
         @Override
         protected void setup(Context context) throws IOException,InterruptedException {
@@ -187,7 +193,23 @@ public class TopTitles extends Configured implements Tool {
 
         @Override
         public void reduce(NullWritable key, Iterable<TextArrayWritable> values, Context context) throws IOException, InterruptedException {
-            // TODO
+            for (TextArrayWritable item: values) {
+                String[] parsedItem = item.toStrings();
+                String word = parsedItem[0];
+                Integer count = Integer.parseInt(parsedItem[1]);
+                Pair<Integer, String> pair = new Pair<>(count, word);
+                pairsSet.add(pair);
+
+                if (pairsSet.size() > N) {
+                    pairsSet.remove(pairsSet.first());
+                }
+            }
+
+            for (Pair<Integer, String> itm : pairsSet) {
+                Text word = new Text(itm.second);
+                IntWritable value = new IntWritable(itm.first);
+                context.write(word, value);
+            }
         }
     }
 
