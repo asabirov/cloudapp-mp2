@@ -131,7 +131,6 @@ public class TopTitles extends Configured implements Tool {
             while (tokenizer.hasMoreTokens()) {
                 String word = tokenizer.nextToken().trim().toLowerCase();
                 if (!stopWords.contains(word)) {
-
                     context.write(new Text(word), new IntWritable(1));
                 }
             }
@@ -139,7 +138,6 @@ public class TopTitles extends Configured implements Tool {
     }
 
     public static class TitleCountReduce extends Reducer<Text, IntWritable, Text, IntWritable> {
-        public static final Log log = LogFactory.getLog(TitleCountReduce.class);
         @Override
         public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
 
@@ -147,14 +145,13 @@ public class TopTitles extends Configured implements Tool {
             for (IntWritable val : values) {
                 total += val.get();
             }
-            log.info(key.toString() + ':'  + total);
             context.write(key, new IntWritable(total));
         }
     }
 
     public static class TopTitlesMap extends Mapper<Text, Text, NullWritable, TextArrayWritable> {
         Integer N;
-        // TODO
+        private Log log = LogFactory.getLog(TopTitlesMap.class);
 
         @Override
         protected void setup(Context context) throws IOException,InterruptedException {
@@ -164,7 +161,8 @@ public class TopTitles extends Configured implements Tool {
 
         @Override
         public void map(Text key, Text value, Context context) throws IOException, InterruptedException {
-            // TODO
+            TextArrayWritable list;
+            log.info(key.toString() + ", " + value.toString());
         }
 
         @Override
