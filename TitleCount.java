@@ -7,6 +7,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.WritableComparable;
+import org.apache.hadoop.io.WritableComparator;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -44,6 +46,7 @@ public class TitleCount extends Configured implements Tool {
         FileInputFormat.setInputPaths(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
 
+        job.setSortComparatorClass(CountComparator.class);
         job.setJarByClass(TitleCount.class);
         return job.waitForCompletion(true) ? 0 : 1;
     }
@@ -81,17 +84,41 @@ public class TitleCount extends Configured implements Tool {
             this.delimiters = readHDFSFile(delimitersPath, conf);
         }
 
-
         @Override
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-            // TODO
+            String title = value.toString();
+            StringTokenizer tokenizer = new StringTokenizer(title, delimiters);
+            while (tokenizer.hasMoreTokens()) {
+                String word = tokenizer.nextToken().trim().toLowerCase();
+                if (!stopWords.contains(word)) {
+                    context.write(new Text(word), new IntWritable(1));
+                }
+            }
         }
     }
 
     public static class TitleCountReduce extends Reducer<Text, IntWritable, Text, IntWritable> {
         @Override
         public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
-            // TODO
+            int total = 0;
+            for (IntWritable val : values) {
+                total += val.get();
+            }
+            context.write(key, new IntWritable(total));
+        }
+    }
+
+    public static class CountComparator extends WritableComparator {
+        protected CountComparator() {
+            super(Text.class, true);
+        }
+
+        @SuppressWarnings("rawtypes")
+        @Override
+        public int compare(WritableComparable value1, WritableComparable value2) {
+            IntWritable num1 = (IntWritable) value1;
+            IntWritable num2 = (IntWritable) value2;
+            return -1 * num1.compareTo(num2);
         }
     }
 }
