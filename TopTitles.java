@@ -126,14 +126,29 @@ public class TopTitles extends Configured implements Tool {
 
         @Override
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-        // TODO
+            String title = value.toString();
+            StringTokenizer tokenizer = new StringTokenizer(title, delimiters);
+            while (tokenizer.hasMoreTokens()) {
+                String word = tokenizer.nextToken().trim().toLowerCase();
+                if (!stopWords.contains(word)) {
+
+                    context.write(new Text(word), new IntWritable(1));
+                }
+            }
         }
     }
 
     public static class TitleCountReduce extends Reducer<Text, IntWritable, Text, IntWritable> {
+        public static final Log log = LogFactory.getLog(TitleCountReduce.class);
         @Override
         public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
-            // TODO
+
+            int total = 0;
+            for (IntWritable val : values) {
+                total += val.get();
+            }
+            log.info(key.toString() + ':'  + total);
+            context.write(key, new IntWritable(total));
         }
     }
 
