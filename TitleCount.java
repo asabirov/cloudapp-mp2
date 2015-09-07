@@ -110,10 +110,10 @@ public class TitleCount extends Configured implements Tool {
 
     public static class CountComparator extends WritableComparator {
         protected CountComparator() {
-            super(Text.class, true);
+            super(IntWritable.class, true);
         }
 
-        @SuppressWarnings("rawtypes")
+        //@SuppressWarnings("rawtypes")
         @Override
         public int compare(WritableComparable value1, WritableComparable value2) {
             IntWritable num1 = (IntWritable) value1;
