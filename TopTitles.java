@@ -163,7 +163,7 @@ public class TopTitles extends Configured implements Tool {
         @Override
         public void map(Text key, Text value, Context context) throws IOException, InterruptedException {
             String word = key.toString();
-            int cnt = Integer.parseInt(value.toString();
+            Integer cnt = Integer.parseInt(value.toString());
             Pair<Integer, String> pair = new Pair<>(cnt, word);
             pairsSet.add(pair);
         }
