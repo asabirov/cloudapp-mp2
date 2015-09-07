@@ -46,7 +46,6 @@ public class TitleCount extends Configured implements Tool {
         FileInputFormat.setInputPaths(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
 
-        job.setSortComparatorClass(CountComparator.class);
         job.setJarByClass(TitleCount.class);
         return job.waitForCompletion(true) ? 0 : 1;
     }
@@ -105,20 +104,6 @@ public class TitleCount extends Configured implements Tool {
                 total += val.get();
             }
             context.write(key, new IntWritable(total));
-        }
-    }
-
-    public static class CountComparator extends WritableComparator {
-        protected CountComparator() {
-            super(IntWritable.class, true);
-        }
-
-        //@SuppressWarnings("rawtypes")
-        @Override
-        public int compare(WritableComparable value1, WritableComparable value2) {
-            IntWritable num1 = (IntWritable) value1;
-            IntWritable num2 = (IntWritable) value2;
-            return -1 * num1.compareTo(num2);
         }
     }
 }
