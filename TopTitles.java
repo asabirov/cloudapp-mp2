@@ -138,6 +138,8 @@ public class TopTitles extends Configured implements Tool {
     }
 
     public static class TitleCountReduce extends Reducer<Text, IntWritable, Text, IntWritable> {
+        private Log log = LogFactory.getLog(TitleCountReduce.class);
+
         @Override
         public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
 
@@ -145,6 +147,8 @@ public class TopTitles extends Configured implements Tool {
             for (IntWritable val : values) {
                 total += val.get();
             }
+            log.info(key.toString() + ", " + total);
+
             context.write(key, new IntWritable(total));
         }
     }
