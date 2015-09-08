@@ -29,7 +29,7 @@ public class OrphanPages extends Configured implements Tool {
         Job job = Job.getInstance(this.getConf(), "Orphan Pages");
 
         job.setMapperClass(LinkCountMap.class);
-        job.setMapOutputKeyClass(Text.class); // id of page to which link exists
+        job.setMapOutputKeyClass(IntWritable.class); // id of page to which link exists
         job.setMapOutputValueClass(IntWritable.class);
 
         job.setReducerClass(OrphanPageReduce.class);
