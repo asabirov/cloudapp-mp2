@@ -189,11 +189,11 @@ public class TopTitleStatistics extends Configured implements Tool {
             List<Integer> counts = getCountsOfTopWords(values, N);
 
             Integer sum, mean, max, min, var;
-            sum = calculateSum(pairsSet);
-            //mean = calculateMean(values);
-            //min = calculateMin(values);
-            //max = calculateMax(values);
-            //var = calculateVar(values);
+            sum = calculateSum(counts);
+            min = calculateMin(counts);
+            max = calculateMax(counts);
+            mean = calculateMean(counts);
+            var = calculateVar(counts);
 
             // TODO
 
@@ -234,6 +234,29 @@ public class TopTitleStatistics extends Configured implements Tool {
                 sum += count;
             }
             return sum;
+        }
+
+        private Integer calculateMax(List<Integer> counts) {
+            return Collections.max(counts);
+        }
+
+        private Integer calculateMin(List<Integer> counts) {
+            return Collections.min(counts);
+        }
+
+        private Integer calculateMean(List<Integer> counts) {
+            return calculateSum(counts) / counts.size();
+        }
+
+        // from https://class.coursera.org/cloudapplications-001/forum/thread?thread_id=797
+        private Integer calculateVar(List<Integer> counts) {
+            Integer mean = calculateMean(counts);
+            Integer var = 0;
+
+            for (Integer count: counts) {
+                var += (mean - count) * (mean - count);
+            }
+            return var / counts.size();
         }
     }
 
