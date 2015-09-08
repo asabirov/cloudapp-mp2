@@ -90,34 +90,95 @@ public class TopPopularLinks extends Configured implements Tool {
     }
 
     public static class LinkCountMap extends Mapper<Object, Text, IntWritable, IntWritable> {
+        @Override
+        public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+            String pageId = value.toString().replaceFirst(":\\s.*", "");
+            String[] linkedPageIds = value.toString().replaceFirst("[0-9]+:\\s", "").split("\\s");
 
-        // TODO
+            IntWritable pageIdInt = new IntWritable(Integer.parseInt(pageId.trim()));
+            context.write(pageIdInt, new IntWritable(0));
+
+            for (String id:  linkedPageIds) {
+                IntWritable idInt = new IntWritable(Integer.parseInt(id.trim()));
+                context.write(idInt, new IntWritable(1));
+            }
+        }
     }
 
     public static class LinkCountReduce extends Reducer<IntWritable, IntWritable, IntWritable, IntWritable> {
-        // TODO
+        @Override
+        public void reduce(IntWritable key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
+            int count = 0;
+            for (IntWritable val : values) {
+                count += val.get();
+            }
+
+            context.write(key, new IntWritable(count));
+        }
     }
 
     public static class TopLinksMap extends Mapper<Text, Text, NullWritable, IntArrayWritable> {
         Integer N;
+        private TreeSet<Pair<Integer, Integer>> pairsSet = new TreeSet<Pair<Integer, Integer>>();
 
         @Override
         protected void setup(Context context) throws IOException,InterruptedException {
             Configuration conf = context.getConfiguration();
             this.N = conf.getInt("N", 10);
         }
-        // TODO
+
+        @Override
+        public void map(Text key, Text value, Context context) throws IOException, InterruptedException {
+            Integer pageId = Integer.parseInt(key.toString());
+            Integer count = Integer.parseInt(value.toString());
+            Pair<Integer, Integer> pair = new Pair<>(count, pageId);
+            pairsSet.add(pair);
+        }
+
+        @Override
+        protected void cleanup(Context context) throws IOException, InterruptedException {
+            while (pairsSet.size() > N) {
+                pairsSet.remove(pairsSet.first());
+            }
+
+            for (Pair<Integer, Integer> item : pairsSet) {
+                Integer[] itemArray = {item.first, item.second};
+                context.write(NullWritable.get(), new IntArrayWritable(itemArray));
+            }
+        }
     }
 
     public static class TopLinksReduce extends Reducer<NullWritable, IntArrayWritable, IntWritable, IntWritable> {
         Integer N;
+        private TreeSet<Pair<Integer, Integer>> pairsSet = new TreeSet<Pair<Integer, Integer>>();
 
         @Override
         protected void setup(Context context) throws IOException,InterruptedException {
             Configuration conf = context.getConfiguration();
             this.N = conf.getInt("N", 10);
         }
-        // TODO
+
+        @Override
+        public void reduce(NullWritable key, Iterable<IntArrayWritable> values, Context context) throws IOException, InterruptedException {
+
+            for (IntArrayWritable item: values) {
+                String[] parsedItem = item.toStrings();
+                Integer count = Integer.parseInt(parsedItem[0]);
+                Integer pageId = Integer.parseInt(parsedItem[1]);
+                System.out.println(pageId + ": " + count);
+
+                Pair<Integer, Integer> pair = new Pair<>(count, pageId);
+                pairsSet.add(pair);
+
+                if (pairsSet.size() > N) {
+                    pairsSet.remove(pairsSet.first());
+                }
+            }
+
+            for (Pair<Integer, Integer> item: pairsSet) {
+                context.write(new IntWritable(item.second), new IntWritable(item.first));
+            }
+        }
     }
 }
 
