@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/modules/OrphanPages/OrphanPages.iml" filepath="$PROJECT_DIR$/modules/OrphanPages/OrphanPages.iml" />
       <module fileurl="file://$PROJECT_DIR$/modules/TitleCount/TitleCount.iml" filepath="$PROJECT_DIR$/modules/TitleCount/TitleCount.iml" />
       <module fileurl="file://$PROJECT_DIR$/modules/TopTitleStatistics/TopTitleStatistics.iml" filepath="$PROJECT_DIR$/modules/TopTitleStatistics/TopTitleStatistics.iml" />
       <module fileurl="file://$PROJECT_DIR$/modules/TopTitles/TopTitles.iml" filepath="$PROJECT_DIR$/modules/TopTitles/TopTitles.iml" />
