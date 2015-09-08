@@ -50,12 +50,10 @@ public class OrphanPages extends Configured implements Tool {
             String[] linkedPageIds = value.toString().replaceFirst("[0-9]+:\\s", "").split("\\s");
 
             IntWritable pageIdInt = new IntWritable(Integer.parseInt(pageId.trim()));
-            context.write(pageIdInt, new IntWritable(1));
-            System.out.println(pageIdInt.toString() + " -> 0");
+            context.write(pageIdInt, new IntWritable(0));
 
             for (String id:  linkedPageIds) {
                 IntWritable idInt = new IntWritable(Integer.parseInt(id.trim()));
-                System.out.println(idInt.toString() + " -> 1");
                 context.write(idInt, new IntWritable(1));
             }
         }
