@@ -66,6 +66,7 @@ public class OrphanPages extends Configured implements Tool {
             for (IntWritable value: values) {
                 linksCount += value.get();
             }
+            System.out.println(key + " - " + linksCount);
 
             if (linksCount == 0) {
                 context.write(key, NullWritable.get());
