@@ -140,7 +140,6 @@ public class TopTitles extends Configured implements Tool {
     public static class TitleCountReduce extends Reducer<Text, IntWritable, Text, IntWritable> {
         @Override
         public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
-
             int cnt = 0;
             for (IntWritable val : values) {
                 cnt += val.get();
@@ -205,9 +204,9 @@ public class TopTitles extends Configured implements Tool {
                 }
             }
 
-            for (Pair<Integer, String> itm : pairsSet) {
-                Text word = new Text(itm.second);
-                IntWritable value = new IntWritable(itm.first);
+            for (Pair<Integer, String> item: pairsSet) {
+                Text word = new Text(item.second);
+                IntWritable value = new IntWritable(item.first);
                 context.write(word, value);
             }
         }
