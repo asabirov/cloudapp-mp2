@@ -183,8 +183,11 @@ public class PopularityLeague extends Configured implements Tool {
         private Integer calculatePageRank(Integer currentPageId, Integer currentPageLinks, Iterable<IntArrayWritable> pages) {
             Integer pr = 0;
             for (IntArrayWritable page : pages) {
-                Integer[] pageData = (Integer[]) page.toArray();
-                if (!currentPageId.equals(pageData[0]) && currentPageLinks > pageData[1]) {
+                IntWritable[] pageData = (IntWritable[]) page.toArray();
+                Integer pageId = pageData[0].get();
+                Integer pageLinks = pageData[0].get();
+
+                if (!currentPageId.equals(pageId) && currentPageLinks > pageLinks) {
                     pr += 1;
                 }
             }
