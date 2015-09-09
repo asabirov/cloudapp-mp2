@@ -38,7 +38,7 @@ public class PopularityLeague extends Configured implements Tool {
         fs.delete(tmpPath, true);
 
         Path inputPath = new Path(args[0]);
-        Path outputPath = new Path(args[0]);
+        Path outputPath = new Path(args[1]);
 
         createLinksCounterJob(conf, inputPath);
         return createPageRankerJob(conf, outputPath);
