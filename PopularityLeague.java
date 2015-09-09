@@ -175,42 +175,33 @@ public class PopularityLeague extends Configured implements Tool {
     public static class PageRankerReducer extends Reducer<NullWritable, IntArrayWritable, IntWritable, IntWritable> {
         @Override
         public void reduce(NullWritable key, Iterable<IntArrayWritable> items, Context context) throws IOException, InterruptedException {
-            List<Integer[]> pages = new ArrayList<>();
+            ArrayList<Pair<Integer, Integer>> pages = new ArrayList<Pair<Integer, Integer>>();
 
-            for (IntArrayWritable item : items) {
-                IntWritable[] itemArray = (IntWritable[]) item.toArray();
-                Integer id = itemArray[0].get();
-                Integer links = itemArray[1].get();
-                Integer[] page = {id, links};
-                pages.add(page);
+            for (IntArrayWritable val: items) {
+                IntWritable[] pair = (IntWritable[]) val.toArray();
+                pages.add(new Pair<Integer, Integer>(pair[0].get(), pair[1].get()));
             }
 
-            for (IntArrayWritable item : items) {
-                IntWritable[] currentPage = (IntWritable[]) item.toArray();
-
-                Integer currentPageId = currentPage[0].get();
-                Integer currentPageLinks = currentPage[1].get();
-                System.out.println("Calculate " + currentPageId + ", " + currentPageLinks);
-
-                Integer pr = calculatePageRank(currentPageId, currentPageLinks, pages);
-                System.out.println(currentPage[0] + " - " + pr);
-
-                context.write(new IntWritable(currentPageId), new IntWritable(pr));
-            }
-        }
-
-        private Integer calculatePageRank(Integer currentPageId, Integer currentPageLinks, List<Integer[]> pages) {
-            Integer pr = 0;
-            for (Integer[] page : pages) {
-                Integer pageId = page[0];
-                Integer pageLinks = page[1];
-
-                if (!currentPageId.equals(pageId) && currentPageLinks > pageLinks) {
-                    pr += 1;
+            Collections.sort(pages, new Comparator<Pair<Integer, Integer>>() {
+                @Override
+                public int compare(Pair<Integer, Integer> a, Pair<Integer, Integer> b) {
+                    return a.second.compareTo(b.second);
                 }
-            }
+            });
 
-            return pr;
+            Integer pr = 0;
+            Integer prev = pages.get(0).second;
+
+            context.write(new IntWritable(pages.get(0).first), new IntWritable(pr));
+
+            for (int i = 1; i < pages.size(); i++) {
+                Pair<Integer, Integer> curr = pages.get(i);
+                if (curr.second > prev) {
+                    pr = i;
+                    prev = curr.second;
+                }
+                context.write(new IntWritable(curr.first), new IntWritable(pr));
+            }
         }
     }
 }
