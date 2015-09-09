@@ -200,6 +200,7 @@ public class PopularityLeague extends Configured implements Tool {
                     pr = i;
                     prev = curr.second;
                 }
+                System.out.println(curr.first + " - " + pr);
                 context.write(new IntWritable(curr.first), new IntWritable(pr));
             }
         }
