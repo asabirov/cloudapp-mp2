@@ -135,7 +135,6 @@ public class PopularityLeague extends Configured implements Tool {
 
             for (String id:  linkedPageIds) {
                 id = id.trim();
-                System.out.println("Check: " + id);
                 if (league.contains(id)) {
                     System.out.println("Sent to reducer: " + id);
                     IntWritable idInt = new IntWritable(Integer.parseInt(id));
@@ -152,6 +151,8 @@ public class PopularityLeague extends Configured implements Tool {
             for (IntWritable val : values) {
                 links += val.get();
             }
+
+            System.out.println("Links: " + pageId + " - " + links);
 
             context.write(pageId, new IntWritable(links));
         }
