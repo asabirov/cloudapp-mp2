@@ -175,6 +175,16 @@ public class PopularityLeague extends Configured implements Tool {
     public static class PageRankerReducer extends Reducer<NullWritable, IntArrayWritable, IntWritable, IntWritable> {
         @Override
         public void reduce(NullWritable key, Iterable<IntArrayWritable> items, Context context) throws IOException, InterruptedException {
+            List<Integer[]> pages = new ArrayList<>();
+
+            for (IntArrayWritable item : items) {
+                IntWritable[] itemArray = (IntWritable[]) item.toArray();
+                Integer id = itemArray[0].get();
+                Integer links = itemArray[1].get();
+                Integer[] page = {id, links};
+                pages.add(page);
+            }
+
             for (IntArrayWritable item : items) {
                 IntWritable[] currentPage = (IntWritable[]) item.toArray();
 
@@ -182,19 +192,18 @@ public class PopularityLeague extends Configured implements Tool {
                 Integer currentPageLinks = currentPage[1].get();
                 System.out.println("Calculate " + currentPageId + ", " + currentPageLinks);
 
-                Integer pr = calculatePageRank(currentPageId, currentPageLinks, items);
+                Integer pr = calculatePageRank(currentPageId, currentPageLinks, pages);
                 System.out.println(currentPage[0] + " - " + pr);
 
                 context.write(new IntWritable(currentPageId), new IntWritable(pr));
             }
         }
 
-        private Integer calculatePageRank(Integer currentPageId, Integer currentPageLinks, Iterable<IntArrayWritable> pages) {
+        private Integer calculatePageRank(Integer currentPageId, Integer currentPageLinks, List<Integer[]> pages) {
             Integer pr = 0;
-            for (IntArrayWritable page : pages) {
-                IntWritable[] pageData = (IntWritable[]) page.toArray();
-                Integer pageId = pageData[0].get();
-                Integer pageLinks = pageData[0].get();
+            for (Integer[] page : pages) {
+                Integer pageId = page[0];
+                Integer pageLinks = page[1];
 
                 if (!currentPageId.equals(pageId) && currentPageLinks > pageLinks) {
                     pr += 1;
