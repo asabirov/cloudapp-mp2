@@ -40,17 +40,18 @@ public class PopularityLeague extends Configured implements Tool {
         Path inputPath = new Path(args[0]);
         Path outputPath = new Path(args[0]);
 
-        createPropagationJob(conf, inputPath);
-        return createAggregationJob(conf, outputPath);
+        createLinksCounterJob(conf, inputPath);
+        return createPageRankerJob(conf, outputPath);
     }
 
-    private void createPropagationJob(Configuration conf, Path inputPath) throws Exception {
-        Job job = Job.getInstance(conf, "Propagation");
-        //jobA.setOutputKeyClass(IntWritable.class);
-        //jobA.setOutputValueClass(IntWritable.class);
+    private void createLinksCounterJob(Configuration conf, Path inputPath) throws Exception {
+        Job job = Job.getInstance(conf, "Links Count");
 
-        job.setMapperClass(PropagationMapper.class);
-        job.setReducerClass(PropagationReducer.class);
+        job.setOutputKeyClass(IntWritable.class);
+        job.setOutputValueClass(IntWritable.class);
+
+        job.setMapperClass(LinksCounterMapper.class);
+        job.setReducerClass(LinksCounterReducer.class);
 
         FileInputFormat.setInputPaths(job, inputPath);
         FileOutputFormat.setOutputPath(job, tmpPath);
@@ -59,24 +60,26 @@ public class PopularityLeague extends Configured implements Tool {
         job.waitForCompletion(true);
     }
 
-    private Integer createAggregationJob(Configuration conf, Path outputPath) throws Exception {
-        Job job = Job.getInstance(conf, "Aggregation");
+    private Integer createPageRankerJob(Configuration conf, Path outputPath) throws Exception {
+        Job job = Job.getInstance(conf, "PagerRanker");
 
-        //job.setOutputKeyClass(Text.class);
-        //job.setOutputValueClass(Text.class);
+        job.setInputFormatClass(KeyValueTextInputFormat.class);
+        job.setOutputFormatClass(TextOutputFormat.class);
 
-        //job.setMapOutputKeyClass(NullWritable.class);
-        //job.setMapOutputValueClass(IntArrayWritable.class);
 
-        job.setMapperClass(AggregationMapper.class);
-        job.setReducerClass(AggregationReducer.class);
+        job.setMapOutputKeyClass(NullWritable.class);
+        job.setMapOutputValueClass(IntArrayWritable.class);
+
+        job.setOutputKeyClass(IntWritable.class);
+        job.setOutputValueClass(IntWritable.class);
+
+        job.setMapperClass(PageRankerMapper.class);
+        job.setReducerClass(PageRankerReducer.class);
         job.setNumReduceTasks(1);
 
         FileInputFormat.setInputPaths(job, tmpPath);
         FileOutputFormat.setOutputPath(job, outputPath);
 
-        job.setInputFormatClass(KeyValueTextInputFormat.class);
-        job.setOutputFormatClass(TextOutputFormat.class);
 
         job.setJarByClass(PopularityLeague.class);
         return job.waitForCompletion(true) ? 0 : 1;
@@ -97,27 +100,42 @@ public class PopularityLeague extends Configured implements Tool {
         }
     }
 
-    public static class PropagationMapper extends Mapper<Object, Text, IntWritable, IntWritable> {
+    public static class LinksCounterMapper extends Mapper<Object, Text, IntWritable, IntWritable> {
         @Override
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+            String pageId = value.toString().replaceFirst(":\\s.*", "");
+            String[] linkedPageIds = value.toString().replaceFirst("[0-9]+:\\s", "").split("\\s");
 
+            IntWritable pageIdInt = new IntWritable(Integer.parseInt(pageId.trim()));
+            context.write(pageIdInt, new IntWritable(0));
+
+            for (String id:  linkedPageIds) {
+                IntWritable idInt = new IntWritable(Integer.parseInt(id.trim()));
+                context.write(idInt, new IntWritable(1));
+            }
         }
     }
 
-    public static class PropagationReducer extends Reducer<IntWritable, IntWritable, IntWritable, IntWritable> {
+    public static class LinksCounterReducer extends Reducer<IntWritable, IntWritable, IntWritable, IntWritable> {
         @Override
         public void reduce(IntWritable key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
+            int count = 0;
+            for (IntWritable val : values) {
+                count += val.get();
+            }
+
+            context.write(key, new IntWritable(count));
         }
     }
 
-    public static class AggregationMapper extends Mapper<Object, Text, IntWritable, IntWritable> {
+    public static class PageRankerMapper extends Mapper<Object, Text, IntWritable, IntWritable> {
         @Override
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
 
         }
     }
 
-    public static class AggregationReducer extends Reducer<IntWritable, IntWritable, IntWritable, IntWritable> {
+    public static class PageRankerReducer extends Reducer<IntWritable, IntWritable, IntWritable, IntWritable> {
         @Override
         public void reduce(IntWritable key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
         }
