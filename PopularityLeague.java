@@ -168,20 +168,23 @@ public class PopularityLeague extends Configured implements Tool {
         @Override
         public void reduce(NullWritable key, Iterable<IntArrayWritable> items, Context context) throws IOException, InterruptedException {
             for (IntArrayWritable item : items) {
-                Integer[] currentPage = (Integer[]) item.toArray();
+                IntWritable[] currentPage = (IntWritable[]) item.toArray();
 
-                Integer pr = calculatePageRank(currentPage, items);
+                Integer currentPageId = currentPage[0].get();
+                Integer currentPageLinks = currentPage[0].get();
+
+                Integer pr = calculatePageRank(currentPageId, currentPageLinks, items);
                 System.out.println(currentPage[0] + " - " + pr);
 
-                context.write(new IntWritable(currentPage[0]), new IntWritable(pr));
+                context.write(new IntWritable(currentPageId), new IntWritable(pr));
             }
         }
 
-        private Integer calculatePageRank(Integer[] currentPage, Iterable<IntArrayWritable> pages) {
+        private Integer calculatePageRank(Integer currentPageId, Integer currentPageLinks, Iterable<IntArrayWritable> pages) {
             Integer pr = 0;
             for (IntArrayWritable page : pages) {
                 Integer[] pageData = (Integer[]) page.toArray();
-                if (!currentPage[0].equals(pageData[0]) && currentPage[1] > pageData[1]) {
+                if (!currentPageId.equals(pageData[0]) && currentPageLinks > pageData[1]) {
                     pr += 1;
                 }
             }
