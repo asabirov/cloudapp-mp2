@@ -45,7 +45,7 @@ public class PopularityLeague extends Configured implements Tool {
     }
 
     private void createLinksCounterJob(Configuration conf, Path inputPath) throws Exception {
-        Job job = Job.getInstance(conf, "Links Count");
+        Job job = Job.getInstance(conf, "LinksCounter");
 
         job.setOutputKeyClass(IntWritable.class);
         job.setOutputValueClass(IntWritable.class);
@@ -79,7 +79,6 @@ public class PopularityLeague extends Configured implements Tool {
 
         FileInputFormat.setInputPaths(job, tmpPath);
         FileOutputFormat.setOutputPath(job, outputPath);
-
 
         job.setJarByClass(PopularityLeague.class);
         return job.waitForCompletion(true) ? 0 : 1;
@@ -121,8 +120,10 @@ public class PopularityLeague extends Configured implements Tool {
         @Override
         protected void setup(Context context) throws IOException,InterruptedException {
             Configuration conf = context.getConfiguration();
-            String league_file = conf.get("league");
-            this.league = Arrays.asList(readHDFSFile(league_file, conf).split("\n"));
+            String path = conf.get("league");
+            System.out.println("Setup");
+
+            this.league = Arrays.asList(readHDFSFile(path, conf).split("\n"));
             for (String id: this.league) {
                 System.out.println("League: " + id);
             }
@@ -134,6 +135,7 @@ public class PopularityLeague extends Configured implements Tool {
 
             for (String id:  linkedPageIds) {
                 id = id.trim();
+                System.out.println("Check: " + id);
                 if (league.contains(id)) {
                     System.out.println("Sent to reducer: " + id);
                     IntWritable idInt = new IntWritable(Integer.parseInt(id));
