@@ -23,6 +23,7 @@ import java.io.InputStreamReader;
 import java.util.*;
 
 public class PopularityLeague extends Configured implements Tool {
+    Path tmpPath = new Path("/mp2/tmp");
 
     public static void main(String[] args) throws Exception {
         int res = ToolRunner.run(new Configuration(), new PopularityLeague(), args);
@@ -31,8 +32,94 @@ public class PopularityLeague extends Configured implements Tool {
 
     @Override
     public int run(String[] args) throws Exception {
-        // TODO
+        Configuration conf = this.getConf();
+
+        FileSystem fs = FileSystem.get(conf);
+        fs.delete(tmpPath, true);
+
+        Path inputPath = new Path(args[0]);
+        Path outputPath = new Path(args[0]);
+
+        createPropagationJob(conf, inputPath);
+        return createAggregationJob(conf, outputPath);
     }
 
-    // TODO
+    private void createPropagationJob(Configuration conf, Path inputPath) throws Exception {
+        Job job = Job.getInstance(conf, "Propagation");
+        //jobA.setOutputKeyClass(IntWritable.class);
+        //jobA.setOutputValueClass(IntWritable.class);
+
+        job.setMapperClass(PropagationMapper.class);
+        job.setReducerClass(PropagationReducer.class);
+
+        FileInputFormat.setInputPaths(job, inputPath);
+        FileOutputFormat.setOutputPath(job, tmpPath);
+
+        job.setJarByClass(PopularityLeague.class);
+        job.waitForCompletion(true);
+    }
+
+    private Integer createAggregationJob(Configuration conf, Path outputPath) throws Exception {
+        Job job = Job.getInstance(conf, "Aggregation");
+
+        //job.setOutputKeyClass(Text.class);
+        //job.setOutputValueClass(Text.class);
+
+        //job.setMapOutputKeyClass(NullWritable.class);
+        //job.setMapOutputValueClass(IntArrayWritable.class);
+
+        job.setMapperClass(AggregationMapper.class);
+        job.setReducerClass(AggregationReducer.class);
+        job.setNumReduceTasks(1);
+
+        FileInputFormat.setInputPaths(job, tmpPath);
+        FileOutputFormat.setOutputPath(job, outputPath);
+
+        job.setInputFormatClass(KeyValueTextInputFormat.class);
+        job.setOutputFormatClass(TextOutputFormat.class);
+
+        job.setJarByClass(PopularityLeague.class);
+        return job.waitForCompletion(true) ? 0 : 1;
+    }
+
+    public static class IntArrayWritable extends ArrayWritable {
+        public IntArrayWritable() {
+            super(IntWritable.class);
+        }
+
+        public IntArrayWritable(Integer[] numbers) {
+            super(IntWritable.class);
+            IntWritable[] ints = new IntWritable[numbers.length];
+            for (int i = 0; i < numbers.length; i++) {
+                ints[i] = new IntWritable(numbers[i]);
+            }
+            set(ints);
+        }
+    }
+
+    public static class PropagationMapper extends Mapper<Object, Text, IntWritable, IntWritable> {
+        @Override
+        public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+
+        }
+    }
+
+    public static class PropagationReducer extends Reducer<IntWritable, IntWritable, IntWritable, IntWritable> {
+        @Override
+        public void reduce(IntWritable key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
+        }
+    }
+
+    public static class AggregationMapper extends Mapper<Object, Text, IntWritable, IntWritable> {
+        @Override
+        public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+
+        }
+    }
+
+    public static class AggregationReducer extends Reducer<IntWritable, IntWritable, IntWritable, IntWritable> {
+        @Override
+        public void reduce(IntWritable key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
+        }
+    }
 }

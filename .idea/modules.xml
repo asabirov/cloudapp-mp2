@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/modules/OrphanPages/OrphanPages.iml" filepath="$PROJECT_DIR$/modules/OrphanPages/OrphanPages.iml" />
+      <module fileurl="file://$PROJECT_DIR$/modules/PopularityLeague/PopularityLeague.iml" filepath="$PROJECT_DIR$/modules/PopularityLeague/PopularityLeague.iml" />
       <module fileurl="file://$PROJECT_DIR$/modules/TitleCount/TitleCount.iml" filepath="$PROJECT_DIR$/modules/TitleCount/TitleCount.iml" />
       <module fileurl="file://$PROJECT_DIR$/modules/TopPopularLinks/TopPopularLinks.iml" filepath="$PROJECT_DIR$/modules/TopPopularLinks/TopPopularLinks.iml" />
       <module fileurl="file://$PROJECT_DIR$/modules/TopTitleStatistics/TopTitleStatistics.iml" filepath="$PROJECT_DIR$/modules/TopTitleStatistics/TopTitleStatistics.iml" />
