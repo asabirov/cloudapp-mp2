@@ -123,6 +123,9 @@ public class PopularityLeague extends Configured implements Tool {
             Configuration conf = context.getConfiguration();
             String league_file = conf.get("league");
             this.league = Arrays.asList(readHDFSFile(league_file, conf).split("\n"));
+            for (String id: this.league) {
+                System.out.println("League: " + id);
+            }
         }
 
         @Override
@@ -130,9 +133,10 @@ public class PopularityLeague extends Configured implements Tool {
             String[] linkedPageIds = value.toString().replaceFirst("[0-9]+:\\s", "").split("\\s");
 
             for (String id:  linkedPageIds) {
+                id = id.trim();
                 if (league.contains(id)) {
-                    System.out.println("[LinksCounterMapper] Sent to reducer: " + id);
-                    IntWritable idInt = new IntWritable(Integer.parseInt(id.trim()));
+                    System.out.println("Sent to reducer: " + id);
+                    IntWritable idInt = new IntWritable(Integer.parseInt(id));
                     context.write(idInt, new IntWritable(1));
                 }
             }
@@ -141,21 +145,22 @@ public class PopularityLeague extends Configured implements Tool {
 
     public static class LinksCounterReducer extends Reducer<IntWritable, IntWritable, IntWritable, IntWritable> {
         @Override
-        public void reduce(IntWritable key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
-            int count = 0;
+        public void reduce(IntWritable pageId, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
+            int links = 0;
             for (IntWritable val : values) {
-                count += val.get();
+                links += val.get();
             }
 
-            context.write(key, new IntWritable(count));
+            context.write(pageId, new IntWritable(links));
         }
     }
 
     public static class PageRankerMapper extends Mapper<Text, Text, NullWritable, IntArrayWritable> {
         @Override
-        public void map(Text key, Text value, Context context) throws IOException, InterruptedException {
-            Integer[] values = {toInteger(key), toInteger(value)};
+        public void map(Text pageId, Text value, Context context) throws IOException, InterruptedException {
+            Integer[] values = {toInteger(pageId), toInteger(value)};
             IntArrayWritable val = new IntArrayWritable(values);
+            System.out.println("To ranker: " + values[0] + ", " + values[1]);
             context.write(NullWritable.get(), val);
         }
 
@@ -172,6 +177,7 @@ public class PopularityLeague extends Configured implements Tool {
 
                 Integer currentPageId = currentPage[0].get();
                 Integer currentPageLinks = currentPage[0].get();
+                System.out.println("Calculate " + currentPageId + ", " + currentPageLinks);
 
                 Integer pr = calculatePageRank(currentPageId, currentPageLinks, items);
                 System.out.println(currentPage[0] + " - " + pr);
