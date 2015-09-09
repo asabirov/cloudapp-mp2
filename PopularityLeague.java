@@ -176,7 +176,7 @@ public class PopularityLeague extends Configured implements Tool {
                 IntWritable[] currentPage = (IntWritable[]) item.toArray();
 
                 Integer currentPageId = currentPage[0].get();
-                Integer currentPageLinks = currentPage[0].get();
+                Integer currentPageLinks = currentPage[1].get();
                 System.out.println("Calculate " + currentPageId + ", " + currentPageLinks);
 
                 Integer pr = calculatePageRank(currentPageId, currentPageLinks, items);
